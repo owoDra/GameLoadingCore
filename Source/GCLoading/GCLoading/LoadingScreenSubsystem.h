@@ -14,6 +14,7 @@
 class SWidget;
 class UUserWidget;
 class ULoadingObserver;
+struct FLoadingScreenDefinition;
 
 
 /**
