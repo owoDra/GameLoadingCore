@@ -35,6 +35,19 @@ void ULoadingScreenSubsystem::Deinitialize()
 	DeinitializeObservers();
 }
 
+bool ULoadingScreenSubsystem::ShouldCreateSubsystem(UObject* Outer) const
+{
+	if (!Super::ShouldCreateSubsystem(Outer))
+	{
+		return false;
+	}
+
+	const auto GI{ static_cast<UGameInstance*>(Outer) };
+	auto ShouldCreate{ !GI->GetWorldContext()->RunAsDedicated };
+
+	return ShouldCreate;
+}
+
 
 // Tick
 
