@@ -28,24 +28,28 @@ void ULoadingScreenSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 
 void ULoadingScreenSubsystem::Deinitialize()
 {
+	DeinitializeObservers();
+
+	LoadingWidgetOverrides.Empty();
+	LoadingScreenInfos.Empty();
+	PendingAddLoadingTags.Empty();
+	PendingRemoveLoadingTags.Empty();
+
+	bLoadingWidgetDisplayed = false;
+
 	ClearInputBlockCount();
 	ClearSavingPerformanceCount();
 	RemoveAllWidgets();
-
-	DeinitializeObservers();
 }
 
 bool ULoadingScreenSubsystem::ShouldCreateSubsystem(UObject* Outer) const
 {
-	if (!Super::ShouldCreateSubsystem(Outer))
-	{
-		return false;
-	}
+	// Only clients have loading screens
 
-	const auto GI{ static_cast<UGameInstance*>(Outer) };
-	auto ShouldCreate{ !GI->GetWorldContext()->RunAsDedicated };
-
-	return ShouldCreate;
+	const auto* GameInstance{ CastChecked<UGameInstance>(Outer) };
+	const auto bIsServerWorld{ GameInstance->IsDedicatedServerInstance() };
+	
+	return !bIsServerWorld;
 }
 
 
@@ -517,25 +521,33 @@ void ULoadingScreenSubsystem::TryRemoveLoadingWidget(const FGameplayTag& Tag)
 			GameViewportClient->RemoveViewportWidgetContent(SlateWidget.ToSharedRef());
 		}
 
+		SlateWidget.Reset();
+
 		ShowingWidgets.Remove(Tag);
 	}
 }
 
 void ULoadingScreenSubsystem::RemoveAllWidgets()
 {
-	if (auto* GameViewportClient{ GetGameInstance()->GetGameViewportClient() })
-	{
-		for (auto It{ ShowingWidgets.CreateIterator() }; It; ++It)
-		{
-			auto& SlateWidget{ It->Value };
+	auto* GameViewportClient{ GetGameInstance()->GetGameViewportClient() };
 
-			if (SlateWidget.IsValid())
+	GEngine->ForceGarbageCollection(true);
+
+	for (auto It{ ShowingWidgets.CreateIterator() }; It; ++It)
+	{
+		auto& SlateWidget{ It->Value };
+
+		if (SlateWidget.IsValid())
+		{
+			if (GameViewportClient)
 			{
 				GameViewportClient->RemoveViewportWidgetContent(SlateWidget.ToSharedRef());
 			}
 
-			It.RemoveCurrent();
+			SlateWidget.Reset();
 		}
+
+		It.RemoveCurrent();
 	}
 }
 

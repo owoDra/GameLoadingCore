@@ -12,11 +12,11 @@ IMPLEMENT_MODULE(FGCPreLoadingModule, GCPreLoading)
 
 void FGCPreLoadingModule::StartupModule()
 {
-	PreLoadingScreen = MakeShared<FPreLoadingScreen>();
-	PreLoadingScreen->Init();
-
 	if (!GIsEditor && FApp::CanEverRender() && FPreLoadScreenManager::Get())
 	{
+		PreLoadingScreen = MakeShared<FPreLoadingScreen>();
+		PreLoadingScreen->Init();
+
 		FPreLoadScreenManager::Get()->RegisterPreLoadScreen(PreLoadingScreen);
 		FPreLoadScreenManager::Get()->OnPreLoadScreenManagerCleanUp.AddRaw(this, &ThisClass::OnPreLoadingScreenManagerCleanUp);
 	}
