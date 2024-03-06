@@ -274,7 +274,7 @@ bool ULoadingScreenSubsystem::AddLoadingProcessNew(FName ProcessName, const FGam
 	{
 		const auto ClassPath{ Def.WidgetClass };
 
-		WidgetClass = ClassPath.IsValid() ? ClassPath.TryLoadClass<UUserWidget>() : nullptr;
+		WidgetClass = ClassPath.TryLoadClass<UUserWidget>();
 	}
 	check(WidgetClass);
 
